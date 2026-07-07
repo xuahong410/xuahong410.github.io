@@ -1,14 +1,566 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <title>xuahong</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 100px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr.Q 时间轴 - 模拟页面</title>
+    <style>
+        /* ==============================
+           Global Styles (全局样式)
+           ============================== */
+        :root {
+            --primary-blue: #48a2f7;
+            --background-grey: #f7f9fb;
+            --text-grey-light: #888;
+            --text-grey-dark: #555;
+            --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-content: border-box;
+        }
+
+        body {
+            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background-color: var(--background-grey);
+            color: #333;
+            line-height: 1.5;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul, ol {
+            list-style: none;
+        }
+
+        /* ==============================
+           Header Section (头部区域)
+           ============================== */
+        header {
+            background-color: var(--primary-blue);
+            height: 400px; /* 控制蓝色区域高度 */
+            width: 100%;
+            position: relative;
+        }
+
+        /* 顶部导航 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 50px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links li {
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        /* 头部正中标题 */
+        .header-title {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 48px;
+            font-weight: 200;
+            letter-spacing: 2px;
+        }
+
+        /* ==============================
+           Main Content Layout (主内容布局)
+           ============================== */
+        main {
+            width: 80%;
+            max-width: 1200px;
+            margin: -50px auto 50px; /* 向上偏移，压入蓝色区域 */
+            display: flex;
+            gap: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 通用卡片样式 */
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 40px;
+        }
+
+        /* Left Column (左侧时间轴) */
+        .timeline-column {
+            flex: 3; /* 占3份 */
+        }
+
+        /* Right Column (右侧卡片) */
+        .sidebar-column {
+            flex: 1; /* 占1份 */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ==============================
+           Timeline (时间轴具体样式)
+           ============================== */
+        .timeline-header {
+            font-size: 18px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timeline-header::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: var(--primary-blue);
+            border-radius: 50%;
+        }
+
+        .timeline-content {
+            border-left: 2px solid #eaedf0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        /* 年份标题 */
+        .year-section {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .year-title {
+            font-size: 20px;
+            color: var(--text-grey-dark);
+            margin-bottom: 20px;
+        }
+
+        .year-title::before {
+            content: '';
+            position: absolute;
+            left: -32px; /* 对应 timeline-content 的 padding */
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            background-color: white;
+            border: 2px solid #eb7e4a; /* 橙色圆圈 */
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        /* 文章项目 */
+        .article-item {
+            display: flex;
+            align-items: start;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        /* 灰色小圆圈 */
+        .article-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 30px; /* 调整在日期和标题之间 */
+            width: 8px;
+            height: 8px;
+            background-color: #f7f9fb;
+            border: 2px solid #eaedf0;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .article-cover {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-right: 20px;
+            background-color: #eee;
+            flex-shrink: 0;
+        }
+
+        .article-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .article-details {
+            flex: 1;
+        }
+
+        .article-date {
+            font-size: 13px;
+            color: var(--text-grey-light);
+            margin-bottom: 8px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* 日历图标 */
+        .article-date i {
+            font-style: normal;
+        }
+
+        .article-title {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .article-link {
+            border: 1px solid #f6b4a3; /* 红色边框 */
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: var(--text-grey-dark);
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .article-link:hover {
+            background-color: #fff1ed;
+        }
+
+        /* 音乐图标特殊调整 */
+        .music-details {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* ==============================
+           Profile Card (个人资料卡)
+           ============================== */
+        .profile-card {
+            align-items: center;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin: 0 auto 15px;
+            background-color: #eee;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .profile-desc {
+            font-size: 12px;
+            color: var(--text-grey-light);
+            margin-bottom: 25px;
+        }
+
+        .stat-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+
+        .stat-item {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-grey-light);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .github-icon {
+            display: block;
+            margin: 0 auto;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+        }
+        
+        /* 临时使用CSS绘制Github图标 */
+        .github-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--text-grey-dark);
+        }
+
+        /* ==============================
+           Notice Card (公告卡)
+           ============================== */
+        .notice-card {
+            color: var(--text-grey-dark);
+            font-size: 13px;
+        }
+
+        .notice-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* 喇叭图标 */
+        .notice-title::before {
+            content: '📢';
+            color: #eb7e4a;
+        }
+
+        .notice-text {
+            color: var(--text-grey-light);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        /* ==============================
+           Music Floating Bar (音乐浮窗)
+           ============================= */
+        .music-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 160px;
+            background-color: var(--primary-blue);
+            color: white;
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            font-size: 12px;
+            z-index: 100;
+        }
+
+        .music-controls {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 5px;
+        }
+
+        .back-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-grey-light);
+            font-size: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        /* ==============================
+           Icons (FontAwesome alternatives)
+           ============================= */
+        [class*="icon-"] {
+            font-style: normal;
+            display: inline-block;
+        }
+
+        /* 日历图标粗略实现 */
+        .icon-calendar::before {
+            content: "\1F5D3";
+            font-size: 14px;
+        }
+
+    </style>
 </head>
 <body>
-  <h1>🎉 Hello xuahong</h1>
-  <p>这是 xuahong.github.io</p>
+
+    <!-- Header & Top Nav -->
+    <header>
+        <div class="top-nav">
+            <div class="logo">Mr.Q</div>
+            <ul class="nav-links">
+                <li>🏠 首页</li>
+                <li>📅 时间轴</li>
+                <li>🏷️ 标签</li>
+                <li>📁 分类</li>
+                <li>🔗 友链</li>
+                <li>💬 留言板</li>
+            </ul>
+        </div>
+        <div class="header-title">时间轴</div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Left: Timeline Section -->
+        <section class="timeline-column card">
+            <div class="timeline-header">
+                文章总览 - 21
+            </div>
+
+            <div class="timeline-content">
+                <!-- 2026 Section -->
+                <div class="year-section">
+                    <div class="year-title">2026</div>
+                    
+                    <div class="article-item">
+                        <div class="article-cover">
+                            <!-- 替换为真实图片地址 -->
+                            <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxMSEhUTExMWFhUXGBgXGBgYFxgaGhcYGhoYFhkaGBgaHiggGBolHRgYITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGxAQGy0lICUtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf/AABEIARMAtwMBIgACEQEDEQH/xAAbAAACAwEBAQAAAAAAAAAAAAADBAACBQEGB//EADcQAAIBAgQEBAUEAgIDAAAAAAECAwARBCExEkFhBRNRcSJSgZEyYqGx8BRCwdHh8RUjcvLS/8E=..." alt="山水画">
+                        </div>
+                        <div class="article-details">
+                            <div class="article-date"><i class="icon-calendar"></i> 2026-01-15</div>
+                            <div class="article-link">大文件 Excel 解析内存飙升(OOM)排查与极限调优纪实</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2025 Section -->
+                <div class="year-section">
+                    <div class="year-title">2025</div>
+                    
+                    <div class="article-item">
+                        <div class="article-cover">
+                            <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxISBhQ...A...SAB..." alt="棱镜">
+                        </div>
+                        <div class="article-details">
+                            <div class="article-date"><i class="icon-calendar"></i> 2025-12-25</div>
+                            <div class="article-title">nginx与frp的内网服务器实战</div>
+                        </div>
+                    </div>
+
+                    <div class="article-item">
+                        <div class="article-cover">
+                            <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxISAhU..." alt="城市夜景">
+                        </div>
+                        <div class="article-details">
+                            <div class="article-date"><i class="icon-calendar"></i> 2025-11-18</div>
+                            <div class="article-title">服务器集群自动化部署(一)之基础环境搭建与应用服务编排</div>
+                        </div>
+                    </div>
+
+                    <!-- 音乐图标项目样式 -->
+                    <div class="music-details">
+                        <i>🔊</i> <span>We Wish You A Merry Christmas</span>
+                    </div>
+
+                    <div class="article-item">
+                        <div class="article-cover">
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJgAAACYCAMAAAAvW...SAB..." alt="代码">
+                        </div>
+                        <div class="article-details">
+                            <div class="article-date"><i class="icon-calendar"></i> 2025-11-15</div>
+                            <div class="article-title">记一次 Linux 服务器网络阻塞排查实战</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right: Sidebar -->
+        <aside class="sidebar-column">
+            <!-- Profile Card -->
+            <div class="profile-card card">
+                <div class="avatar">
+                    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxMREhM..." alt="头像">
+                </div>
+                <div class="profile-name">Mr.Q</div>
+                <div class="profile-desc">自学的笔记</div>
+                
+                <div class="stat-container">
+                    <div class="stat-item">
+                        <div class="stat-label">文章</div>
+                        <div class="stat-value">21</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">标签</div>
+                        <div class="stat-value">11</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">分类</div>
+                        <div class="stat-value">2</div>
+                    </div>
+                </div>
+
+                <a href="#" class="github-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.111.825-.261.825-.579 0-.285-.011-1.041-.015-2.043-3.338.726-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.218.694.825.576C20.565 21.795 24 17.308 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+            </div>
+
+            <!-- Notice Card -->
+            <div class="notice-card card">
+                <div class="notice-title">公告</div>
+                <div class="notice-text">
+                    喜欢瞎搞的 🦊 🙈 打工人。
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Music Bar & Back to top -->
+    <div class="music-bar">
+        <span>We Wish You A ...</span>
+        <div class="music-controls">
+            <span>⏸️</span> <span>▶️</span> <span>⏮️</span>
+        </div>
+    </div>
+
+    <div class="back-btn">></div>
+
 </body>
 </html>
